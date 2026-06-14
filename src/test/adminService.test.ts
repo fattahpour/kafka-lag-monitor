@@ -114,3 +114,72 @@ test('getTopicConfig returns an empty array when no resource is returned', async
 
   assert.deepEqual(result, []);
 });
+
+test('listConsumerGroups filters out non-consumer protocol groups', async () => {
+  const admin = createFakeAdminClient({
+    listGroups: async () => ({
+      groups: [
+        { groupId: 'order-service', protocolType: 'consumer' },
+        { groupId: 'kafka-connect-cluster', protocolType: '' },
+      ],
+    }),
+  });
+
+  const result = await new AdminService(admin).listConsumerGroups();
+
+  assert.deepEqual(result, [{ groupId: 'order-service' }]);
+});
+
+test('getGroupLag computes per-partition and total lag, including not-started partitions', async () => {
+  const admin = createFakeAdminClient({
+    fetchOffsets: async ({ groupId }) => {
+      assert.equal(groupId, 'order-service');
+      return [
+        {
+          topic: 'orders.events',
+          partitions: [
+            { partition: 0, offset: '401' },
+            { partition: 1, offset: '-1' },
+          ],
+        },
+      ];
+    },
+    fetchTopicOffsets: async (topic) => {
+      assert.equal(topic, 'orders.events');
+      return [
+        { partition: 0, offset: '0', high: '600', low: '0' },
+        { partition: 1, offset: '0', high: '220', low: '0' },
+      ];
+    },
+  });
+
+  const result = await new AdminService(admin).getGroupLag('order-service');
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0].topic, 'orders.events');
+  assert.equal(result[0].totalLag, 199 + 220);
+  assert.deepEqual(result[0].partitions[0], {
+    partition: 0,
+    currentOffset: 401,
+    endOffset: 600,
+    lag: 199,
+    status: 'lag',
+  });
+  assert.deepEqual(result[0].partitions[1], {
+    partition: 1,
+    currentOffset: 0,
+    endOffset: 220,
+    lag: 220,
+    status: 'not-started',
+  });
+});
+
+test('getGroupLag returns an empty array for a group with no committed offsets', async () => {
+  const admin = createFakeAdminClient({
+    fetchOffsets: async () => [],
+  });
+
+  const result = await new AdminService(admin).getGroupLag('idle-group');
+
+  assert.deepEqual(result, []);
+});
