@@ -6,7 +6,7 @@ export interface ConnectionNodeView {
   description: string;
 }
 
-const STATUS_ICONS: Record<ConnectionStatus, string> = {
+export const STATUS_ICONS: Record<ConnectionStatus, string> = {
   idle: '⚪',
   connecting: '…',
   connected: '✓',

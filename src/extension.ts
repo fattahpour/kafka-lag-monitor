@@ -1,5 +1,6 @@
 import { Kafka, SASLOptions } from 'kafkajs';
 import * as vscode from 'vscode';
+import { registerConnectionCommands } from './connection/connectionCommands';
 import { ConnectionManager } from './connection/connectionManager';
 import { getConnectionProfiles, getLagThresholds } from './connection/profileStore';
 import { getCredential } from './connection/secretStore';
@@ -55,6 +56,8 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(treeView);
 
   context.subscriptions.push(vscode.commands.registerCommand('kafkaLagMonitor.refresh', () => explorer.refresh()));
+
+  registerConnectionCommands(context, connectionManager, explorer, onConfigError);
 }
 
 export function deactivate(): void {}

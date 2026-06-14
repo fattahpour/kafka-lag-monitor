@@ -65,6 +65,23 @@
         "command": "kafkaLagMonitor.refresh",
         "title": "Kafka Lag Monitor: Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "kafkaLagMonitor.addConnection",
+        "title": "Kafka: Add Connection",
+        "icon": "$(add)"
+      },
+      {
+        "command": "kafkaLagMonitor.editConnection",
+        "title": "Kafka: Edit Connection"
+      },
+      {
+        "command": "kafkaLagMonitor.removeConnection",
+        "title": "Kafka: Remove Connection"
+      },
+      {
+        "command": "kafkaLagMonitor.reconnect",
+        "title": "Kafka: Reconnect"
       }
     ],
     "menus": {
@@ -73,6 +90,25 @@
           "command": "kafkaLagMonitor.refresh",
           "when": "view == kafkaLagMonitor.explorer",
           "group": "navigation"
+        },
+        {
+          "command": "kafkaLagMonitor.addConnection",
+          "when": "view == kafkaLagMonitor.explorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "kafkaLagMonitor.editConnection",
+          "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaConnection"
+        },
+        {
+          "command": "kafkaLagMonitor.removeConnection",
+          "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaConnection"
+        },
+        {
+          "command": "kafkaLagMonitor.reconnect",
+          "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaConnection"
         }
       ]
     }

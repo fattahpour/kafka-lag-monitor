@@ -21,10 +21,14 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   constructor(
-    private readonly profiles: ConnectionProfile[],
+    private profiles: ConnectionProfile[],
     private readonly connectionManager: ConnectionManager,
     private readonly thresholds: Thresholds,
   ) {}
+
+  setProfiles(profiles: ConnectionProfile[]): void {
+    this.profiles = profiles;
+  }
 
   refresh(): void {
     this._onDidChangeTreeData.fire(undefined);
@@ -37,6 +41,7 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
         const view = buildConnectionNode(element.profile.name, state.status, state.error);
         const item = new vscode.TreeItem(view.label, vscode.TreeItemCollapsibleState.Collapsed);
         item.description = view.description;
+        item.contextValue = 'kafkaConnection';
         return item;
       }
       case 'topicsFolder':
