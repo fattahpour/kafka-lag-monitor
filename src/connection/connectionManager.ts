@@ -7,11 +7,12 @@ export interface ConnectionState {
   error?: string;
 }
 
-export type AdminClientFactory = (profile: ConnectionProfile) => KafkaAdminClient;
+export type AdminClientFactory = (profile: ConnectionProfile) => Promise<KafkaAdminClient>;
 
 export class ConnectionManager {
   private readonly clients = new Map<string, KafkaAdminClient>();
   private readonly states = new Map<string, ConnectionState>();
+  private readonly generations = new Map<string, number>();
 
   constructor(private readonly createAdminClient: AdminClientFactory) {}
 
@@ -19,18 +20,58 @@ export class ConnectionManager {
     return this.states.get(profileName) ?? { status: 'idle' };
   }
 
+  private nextGeneration(profileName: string): number {
+    const gen = (this.generations.get(profileName) ?? 0) + 1;
+    this.generations.set(profileName, gen);
+    return gen;
+  }
+
+  private isCurrentGeneration(profileName: string, gen: number): boolean {
+    return this.generations.get(profileName) === gen;
+  }
+
   async connect(profile: ConnectionProfile): Promise<void> {
+    const gen = this.nextGeneration(profile.name);
     this.states.set(profile.name, { status: 'connecting' });
     try {
       let client = this.clients.get(profile.name);
       if (!client) {
-        client = this.createAdminClient(profile);
+        client = await this.createAdminClient(profile);
         this.clients.set(profile.name, client);
       }
       await client.connect();
-      this.states.set(profile.name, { status: 'connected' });
+      if (this.isCurrentGeneration(profile.name, gen)) {
+        this.states.set(profile.name, { status: 'connected' });
+      }
     } catch (err) {
-      this.states.set(profile.name, { status: 'error', error: (err as Error).message });
+      if (this.isCurrentGeneration(profile.name, gen)) {
+        this.states.set(profile.name, { status: 'error', error: (err as Error).message });
+      }
+      throw err;
+    }
+  }
+
+  async reconnect(profile: ConnectionProfile): Promise<void> {
+    const gen = this.nextGeneration(profile.name);
+    this.states.set(profile.name, { status: 'connecting' });
+
+    const existing = this.clients.get(profile.name);
+    if (existing) {
+      this.clients.delete(profile.name);
+      await existing.disconnect().catch(() => undefined);
+    }
+
+    try {
+      const client = await this.createAdminClient(profile);
+      this.clients.set(profile.name, client);
+      await client.connect();
+      if (this.isCurrentGeneration(profile.name, gen)) {
+        this.states.set(profile.name, { status: 'connected' });
+      }
+    } catch (err) {
+      if (this.isCurrentGeneration(profile.name, gen)) {
+        this.states.set(profile.name, { status: 'error', error: (err as Error).message });
+      }
       throw err;
     }
   }

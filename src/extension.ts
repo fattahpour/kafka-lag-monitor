@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext): void {
   output.appendLine('Kafka Lag Monitor activated');
   context.subscriptions.push(output);
 
-  const connectionManager = new ConnectionManager((profile) => {
+  const connectionManager = new ConnectionManager(async (profile) => {
     if (profile.sasl) {
       throw new Error('SASL authentication is not supported yet. Use a PLAINTEXT or SSL-only connection.');
     }
