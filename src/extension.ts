@@ -25,13 +25,17 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(output);
 
   const connectionManager = new ConnectionManager(async (profile) => {
-    const sasl = profile.sasl
-      ? buildSasl(
-          profile.sasl.mechanism,
-          (await getCredential(context.secrets, profile.name, 'username')) ?? '',
-          (await getCredential(context.secrets, profile.name, 'password')) ?? '',
-        )
-      : undefined;
+    let sasl: SASLOptions | undefined;
+    if (profile.sasl) {
+      const username = await getCredential(context.secrets, profile.name, 'username');
+      const password = await getCredential(context.secrets, profile.name, 'password');
+      if (username === undefined || password === undefined) {
+        throw new Error(
+          `Missing SASL credentials for connection "${profile.name}". Use the 'Kafka: Add Connection' command to set them.`,
+        );
+      }
+      sasl = buildSasl(profile.sasl.mechanism, username, password);
+    }
     const kafka = new Kafka({
       clientId: profile.clientId,
       brokers: profile.brokers,
