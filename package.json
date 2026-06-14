@@ -33,7 +33,7 @@
         "kafkaLagMonitor.connections": {
           "type": "array",
           "default": [],
-          "description": "Kafka cluster connection profiles. Each entry: { name, brokers: [\"host:port\", ...], sasl: null, ssl, clientId }. SASL is not yet supported."
+          "description": "Kafka cluster connection profiles. Each entry: { name, brokers: [\"host:port\", ...], sasl: null or { mechanism: \"plain\"|\"scram-sha-256\"|\"scram-sha-512\" }, ssl, clientId }. Use the 'Kafka: Add Connection' command to create one — SASL credentials are stored in SecretStorage, not in settings."
         },
         "kafkaLagMonitor.lagWarningThreshold": {
           "type": "number",
