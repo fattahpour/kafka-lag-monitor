@@ -25,5 +25,56 @@
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.75.0",
     "typescript": "^5.4.0"
+  },
+  "contributes": {
+    "configuration": {
+      "title": "Kafka Lag Monitor",
+      "properties": {
+        "kafkaLagMonitor.connections": {
+          "type": "array",
+          "default": [],
+          "description": "Kafka cluster connection profiles. Each entry: { name, brokers: [\"host:port\", ...], sasl: null, ssl, clientId }. SASL is not yet supported."
+        },
+        "kafkaLagMonitor.lagWarningThreshold": {
+          "type": "number",
+          "default": 100,
+          "description": "Total consumer group lag at or above which the lag badge turns yellow."
+        },
+        "kafkaLagMonitor.lagCriticalThreshold": {
+          "type": "number",
+          "default": 1000,
+          "description": "Total consumer group lag at or above which the lag badge turns red."
+        },
+        "kafkaLagMonitor.pollIntervalSeconds": {
+          "type": "number",
+          "default": 10,
+          "description": "Auto-refresh interval in seconds for the Lag Dashboard webview (not yet implemented)."
+        }
+      }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "kafkaLagMonitor.explorer",
+          "name": "Kafka Lag Monitor"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "kafkaLagMonitor.refresh",
+        "title": "Kafka Lag Monitor: Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kafkaLagMonitor.refresh",
+          "when": "view == kafkaLagMonitor.explorer",
+          "group": "navigation"
+        }
+      ]
+    }
   }
 }
