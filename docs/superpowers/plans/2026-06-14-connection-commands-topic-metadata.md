@@ -417,7 +417,7 @@ export class ConnectionManager {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test 2>&1 | tail -8`
-Expected: PASS — `# tests 46`, `# pass 46`, `# fail 0` (42 from Task 1, minus the 4 old tests in this file, plus the 8 new tests above).
+Expected: PASS — `# tests 47`, `# pass 47`, `# fail 0` (42 from Task 1, minus the 4 old tests in this file, plus the 8 new tests above, plus 1 follow-up regression test for the disconnect() generation guard).
 
 - [ ] **Step 5: Commit**
 
@@ -425,6 +425,14 @@ Expected: PASS — `# tests 46`, `# pass 46`, `# fail 0` (42 from Task 1, minus 
 git add src/connection/connectionManager.ts src/test/connectionManager.test.ts
 git commit -m "feat: add reconnect() and a generation-counter race guard to ConnectionManager"
 ```
+
+**Follow-up (post-review):** `disconnect()` must also call `nextGeneration(profileName)` at
+its start, so an in-flight `connect()`/`reconnect()` becomes stale and can no longer
+overwrite the `idle` state back to `connected` after the user explicitly disconnects. A 9th
+test, "disconnect() during an in-flight reconnect() leaves status idle", locks this in.
+Committed separately as "fix: guard disconnect() against a resurrecting in-flight
+connect()/reconnect()". This brings the suite from 46 to 47 tests, which is reflected in the
+"Expected" line above and in every later task's test-count reference.
 
 ---
 
@@ -514,7 +522,7 @@ to:
 - [ ] **Step 3: Verify compile and tests**
 
 Run: `npm run compile && npm test 2>&1 | tail -8`
-Expected: compile succeeds; `# tests 46`, `# pass 46`, `# fail 0`.
+Expected: compile succeeds; `# tests 47`, `# pass 47`, `# fail 0`.
 
 - [ ] **Step 4: Commit**
 
@@ -934,7 +942,7 @@ Then, after the `vscode.commands.registerCommand('kafkaLagMonitor.refresh', ...)
 - [ ] **Step 9: Verify compile, tests, and package.json validity**
 
 Run: `npm run compile && npm test 2>&1 | tail -8`
-Expected: compile succeeds; `# tests 46`, `# pass 46`, `# fail 0`.
+Expected: compile succeeds; `# tests 47`, `# pass 47`, `# fail 0`.
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('valid json')"`
 Expected: `valid json`
@@ -1096,7 +1104,7 @@ export function renderErrorHtml(message: string): string {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test 2>&1 | tail -8`
-Expected: PASS — `# tests 51`, `# pass 51`, `# fail 0` (46 from Task 2, plus the 5 new tests above).
+Expected: PASS — `# tests 52`, `# pass 52`, `# fail 0` (47 from Task 2, plus the 5 new tests above).
 
 - [ ] **Step 5: Commit**
 
@@ -1283,7 +1291,7 @@ After the `registerConnectionCommands(context, connectionManager, explorer, onCo
 - [ ] **Step 4: Run the tests to verify nothing broke**
 
 Run: `npm run compile && npm test 2>&1 | tail -8`
-Expected: compile succeeds; `# tests 51`, `# pass 51`, `# fail 0` (unchanged from Task 5 — this task adds no new tests).
+Expected: compile succeeds; `# tests 52`, `# pass 52`, `# fail 0` (unchanged from Task 5 — this task adds no new tests).
 
 - [ ] **Step 5: Commit**
 
@@ -1408,7 +1416,7 @@ commands for those):
 - [ ] **Step 3: Final verification**
 
 Run: `npm run compile && npm test 2>&1 | tail -8`
-Expected: compile succeeds; `# tests 51`, `# pass 51`, `# fail 0`.
+Expected: compile succeeds; `# tests 52`, `# pass 52`, `# fail 0`.
 
 - [ ] **Step 4: Commit**
 
