@@ -1,0 +1,29 @@
+{
+  "name": "kafka-lag-monitor",
+  "displayName": "Kafka Lag Monitor",
+  "description": "Monitor Kafka consumer lag, browse topics, and inspect cluster metadata from VS Code.",
+  "version": "0.0.1",
+  "publisher": "fattahpour",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node --test ./out/test/*.test.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.4.0"
+  }
+}
