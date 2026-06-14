@@ -154,3 +154,40 @@ test('a stale connect() failure does not overwrite a newer reconnect() success',
 
   assert.equal(manager.getState(profile.name).status, 'connected');
 });
+
+test('disconnect() during an in-flight reconnect() leaves status idle', async () => {
+  let resolveReconnectConnect: () => void = () => {};
+  let connectCalled: () => void = () => {};
+  const connectCalledPromise = new Promise<void>((resolve) => {
+    connectCalled = resolve;
+  });
+  const firstClient = createFakeAdminClient();
+  const secondClient = createFakeAdminClient({
+    connect: () =>
+      new Promise<void>((resolve) => {
+        resolveReconnectConnect = resolve;
+        connectCalled();
+      }),
+  });
+  let createCount = 0;
+  const manager = new ConnectionManager(async () => {
+    createCount += 1;
+    return createCount === 1 ? firstClient : secondClient;
+  });
+
+  await manager.connect(profile);
+  assert.equal(manager.getState(profile.name).status, 'connected');
+
+  const reconnectPromise = manager.reconnect(profile);
+
+  // Wait until reconnect() has reached its in-flight client.connect() call.
+  await connectCalledPromise;
+
+  await manager.disconnect(profile.name);
+  assert.equal(manager.getState(profile.name).status, 'idle');
+
+  resolveReconnectConnect();
+  await reconnectPromise;
+
+  assert.equal(manager.getState(profile.name).status, 'idle');
+});

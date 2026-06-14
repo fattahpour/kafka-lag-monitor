@@ -77,6 +77,7 @@ export class ConnectionManager {
   }
 
   async disconnect(profileName: string): Promise<void> {
+    this.nextGeneration(profileName);
     const client = this.clients.get(profileName);
     if (client) {
       await client.disconnect();
