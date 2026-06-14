@@ -1,7 +1,7 @@
 import { ConnectionProfile, SaslMechanism } from './types';
 
 const SASL_MECHANISMS: SaslMechanism[] = ['plain', 'scram-sha-256', 'scram-sha-512'];
-const BROKER_PATTERN = /^[\w.-]+:\d+$/;
+export const BROKER_PATTERN = /^[\w.-]+:\d+$/;
 
 export function validateProfile(raw: unknown): { profile: ConnectionProfile | null; errors: string[] } {
   const errors: string[] = [];
