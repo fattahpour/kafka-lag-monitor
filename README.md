@@ -12,9 +12,12 @@ connection, the list of topics (with partition counts) and consumer groups
 the **Kafka: Add Connection** command (the `+` icon in the Explorer view
 title bar) and the **Kafka: Edit Connection**, **Kafka: Remove Connection**,
 and **Kafka: Reconnect** commands (right-click a connection), backed by VS
-Code settings and SecretStorage. Clicking a topic
-opens a Topic Metadata webview showing its partitions (leader, replicas, ISR)
-and configuration. The Lag Dashboard, Message Browser, and Produce webviews
+Code settings and SecretStorage. Clicking a topic opens a Topic Metadata
+webview showing its partitions (leader, replicas, ISR) and configuration.
+Clicking a consumer group opens a Lag Dashboard webview showing total lag,
+overall status, and a per-topic/per-partition progress-bar breakdown, with a
+manual refresh button and an auto-refresh toggle (interval configured via
+`kafkaLagMonitor.pollIntervalSeconds`). Message Browser and Produce webviews
 are planned in follow-up phases (see
 `docs/superpowers/specs/2026-06-13-kafka-lag-monitor-design.md`).
 
@@ -84,4 +87,6 @@ for i in 1 2 3 4 5; do echo "order-$i"; done | ./bin/kafka-console-producer.sh -
 
 Then `F5` the extension and expand `local-cluster` in the Explorer sidebar —
 `orders.events` should show 3 partitions, and `order-service` should show a
-total lag of 3.
+total lag of 3. Clicking `order-service` opens the Lag Dashboard, which should
+show a Total Lag of 3 with one `orders.events` section and per-partition
+progress bars.
