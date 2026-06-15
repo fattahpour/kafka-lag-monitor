@@ -1,9 +1,11 @@
+import * as fs from 'fs';
 import { Kafka, SASLOptions } from 'kafkajs';
 import * as vscode from 'vscode';
 import { registerConnectionCommands } from './connection/connectionCommands';
 import { ConnectionManager } from './connection/connectionManager';
 import { getConnectionProfiles, getLagThresholds } from './connection/profileStore';
 import { getCredential } from './connection/secretStore';
+import { buildSslOptions, TlsConnectionOptions } from './connection/sslConfig';
 import { ConnectionProfile, SaslMechanism } from './connection/types';
 import { createKafkaAdminClient } from './kafka/kafkaAdminAdapter';
 import { createKafkaConsumerClient } from './kafka/kafkaConsumerAdapter';
@@ -43,10 +45,22 @@ export function activate(context: vscode.ExtensionContext): void {
       }
       sasl = buildSasl(profile.sasl.mechanism, username, password);
     }
+
+    let ssl: boolean | TlsConnectionOptions;
+    try {
+      let passphrase: string | undefined;
+      if (typeof profile.ssl === 'object') {
+        passphrase = await getCredential(context.secrets, profile.name, 'tlsKeyPassphrase');
+      }
+      ssl = buildSslOptions(profile.ssl, (path) => fs.readFileSync(path, 'utf-8'), passphrase);
+    } catch (err) {
+      throw new Error(`${(err as Error).message} (connection "${profile.name}")`);
+    }
+
     return new Kafka({
       clientId: profile.clientId,
       brokers: profile.brokers,
-      ssl: profile.ssl,
+      ssl,
       sasl,
       logCreator: createKafkaLogCreator((line) => output.appendLine(line)),
     });
