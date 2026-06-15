@@ -60,7 +60,7 @@ export function toDashboardData(groupId: string, topicLags: TopicLag[], threshol
 
 export function renderLagDashboardHtml(groupId: string, data: LagDashboardData, pollIntervalSeconds: number): string {
   const safeGroupId = escapeHtml(groupId);
-  const initialData = JSON.stringify(data);
+  const initialData = JSON.stringify(data).replace(/</g, '\\u003c');
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

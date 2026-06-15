@@ -162,3 +162,11 @@ test('renderLagDashboardHtml handles update and pollError messages with a reconn
   assert.match(html, /'pollError'/);
   assert.match(html, /Kafka: Reconnect/);
 });
+
+test('renderLagDashboardHtml escapes "</script>" sequences inside the serialized initial data', () => {
+  const data = toDashboardData('</script><script>alert(1)</script>', [], thresholds);
+  const html = renderLagDashboardHtml('order-service', data, 10);
+
+  const closingTagCount = (html.match(/<\/script>/g) || []).length;
+  assert.equal(closingTagCount, 1);
+});
