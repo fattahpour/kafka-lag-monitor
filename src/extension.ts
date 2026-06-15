@@ -8,6 +8,7 @@ import { ConnectionProfile, SaslMechanism } from './connection/types';
 import { createKafkaAdminClient } from './kafka/kafkaAdminAdapter';
 import { createKafkaLogCreator } from './logging/kafkaLogCreator';
 import { KafkaExplorerProvider } from './treeView/kafkaExplorerProvider';
+import { LagDashboardPanel } from './webviews/lagDashboardPanelController';
 import { TopicMetadataPanel } from './webviews/topicMetadataPanelController';
 
 function buildSasl(mechanism: SaslMechanism, username: string, password: string): SASLOptions {
@@ -65,6 +66,18 @@ export function activate(context: vscode.ExtensionContext): void {
       'kafkaLagMonitor.showTopicMetadata',
       async (profile: ConnectionProfile, topicName: string) => {
         await TopicMetadataPanel.show(connectionManager, profile.name, topicName);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'kafkaLagMonitor.showLagDashboard',
+      async (profile: ConnectionProfile, groupId: string) => {
+        const pollIntervalSeconds = vscode.workspace
+          .getConfiguration('kafkaLagMonitor')
+          .get('pollIntervalSeconds', 10);
+        await LagDashboardPanel.show(connectionManager, profile, groupId, thresholds, pollIntervalSeconds);
       },
     ),
   );

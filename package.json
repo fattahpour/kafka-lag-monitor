@@ -48,7 +48,7 @@
         "kafkaLagMonitor.pollIntervalSeconds": {
           "type": "number",
           "default": 10,
-          "description": "Auto-refresh interval in seconds for the Lag Dashboard webview (not yet implemented)."
+          "description": "Auto-refresh interval in seconds for the Lag Dashboard webview's auto-poll toggle."
         }
       }
     },
