@@ -11,7 +11,7 @@ export type KafkaTreeNode =
   | { kind: 'topicsFolder'; profile: ConnectionProfile }
   | { kind: 'groupsFolder'; profile: ConnectionProfile }
   | { kind: 'topic'; topic: TopicSummary; profile: ConnectionProfile }
-  | { kind: 'group'; groupId: string; totalLag: number; topicLags: TopicLag[] }
+  | { kind: 'group'; groupId: string; totalLag: number; topicLags: TopicLag[]; profile: ConnectionProfile }
   | { kind: 'groupTopic'; topicLag: TopicLag }
   | { kind: 'partition'; partitionLag: PartitionLag }
   | { kind: 'message'; text: string };
@@ -69,6 +69,11 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
             : vscode.TreeItemCollapsibleState.None,
         );
         item.description = view.description;
+        item.command = {
+          command: 'kafkaLagMonitor.showLagDashboard',
+          title: 'Show Lag Dashboard',
+          arguments: [element.profile, element.groupId],
+        };
         return item;
       }
       case 'groupTopic': {
@@ -132,7 +137,7 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
           for (const group of groups) {
             const topicLags = await adminService.getGroupLag(group.groupId);
             const totalLag = topicLags.reduce((sum, t) => sum + t.totalLag, 0);
-            nodes.push({ kind: 'group', groupId: group.groupId, totalLag, topicLags });
+            nodes.push({ kind: 'group', groupId: group.groupId, totalLag, topicLags, profile: element.profile });
           }
           return nodes;
         } catch (err) {
