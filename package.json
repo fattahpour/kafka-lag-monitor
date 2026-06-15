@@ -5,6 +5,14 @@
   "version": "0.0.1",
   "publisher": "fattahpour",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fattahpour/kafka-lag-monitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fattahpour/kafka-lag-monitor/issues"
+  },
+  "homepage": "https://github.com/fattahpour/kafka-lag-monitor#readme",
   "engines": {
     "vscode": "^1.75.0"
   },

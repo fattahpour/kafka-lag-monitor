@@ -117,3 +117,7 @@ should show `Sent to partition <p>, offset <o>`. Switch to (or re-open via
 **Kafka: Browse Messages**) the Message Browser panel and click **Latest** to
 confirm the new message appears at that offset with the key, value, and
 header you entered.
+
+## License
+
+[MIT](LICENSE)
