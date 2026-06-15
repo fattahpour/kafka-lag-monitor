@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { toMessageBrowserData } from '../webviews/messageBrowserPanel';
+import { renderMessageBrowserHtml, toMessageBrowserData } from '../webviews/messageBrowserPanel';
 import { MessagePage } from '../kafka/consumerService';
 
 function buildPage(overrides: Partial<MessagePage> = {}): MessagePage {
@@ -52,4 +52,54 @@ test('toMessageBrowserData converts headers to an ordered array and passes throu
     { key: 'a', value: '1' },
     { key: 'b', value: '2' },
   ]);
+});
+
+test('renderMessageBrowserHtml includes the topic name and control element ids', () => {
+  const data = toMessageBrowserData('orders.events', 3, buildPage());
+  const html = renderMessageBrowserHtml('orders.events', data);
+
+  assert.match(html, /<title>Messages: orders\.events<\/title>/);
+  assert.match(html, /id="title"/);
+  assert.match(html, /id="partition"/);
+  assert.match(html, /id="earliest"/);
+  assert.match(html, /id="prev"/);
+  assert.match(html, /id="next"/);
+  assert.match(html, /id="latest"/);
+  assert.match(html, /id="refresh"/);
+  assert.match(html, /id="banner"/);
+  assert.match(html, /id="windowInfo"/);
+  assert.match(html, /id="rows"/);
+});
+
+test('renderMessageBrowserHtml embeds the serialized initial data and VALUE_TRUNCATE_LENGTH', () => {
+  const data = toMessageBrowserData('orders.events', 3, buildPage());
+  const html = renderMessageBrowserHtml('orders.events', data);
+
+  assert.match(html, /<script>[\s\S]*const initialData = \{[\s\S]*"topic":"orders\.events"[\s\S]*\}[\s\S]*<\/script>/);
+  assert.match(html, /const VALUE_TRUNCATE_LENGTH = 300;/);
+});
+
+test('renderMessageBrowserHtml escapes "</script>" sequences inside the serialized initial data', () => {
+  const page = buildPage({
+    messages: [
+      { offset: 150, timestamp: '1700000000000', key: '</script><script>alert(1)</script>', value: null, headers: {} },
+    ],
+  });
+  const data = toMessageBrowserData('orders.events', 3, page);
+  const html = renderMessageBrowserHtml('orders.events', data);
+
+  const closingTagCount = (html.match(/<\/script>/g) || []).length;
+  assert.equal(closingTagCount, 1);
+});
+
+test('renderMessageBrowserHtml wires the partition select and nav buttons to postMessage', () => {
+  const data = toMessageBrowserData('orders.events', 3, buildPage());
+  const html = renderMessageBrowserHtml('orders.events', data);
+
+  assert.match(html, /postMessage\(\{ type: 'setPartition', partition: Number\(event\.target\.value\) \}\)/);
+  assert.match(html, /postMessage\(\{ type: 'nav', action: 'earliest' \}\)/);
+  assert.match(html, /postMessage\(\{ type: 'nav', action: 'prev' \}\)/);
+  assert.match(html, /postMessage\(\{ type: 'nav', action: 'next' \}\)/);
+  assert.match(html, /postMessage\(\{ type: 'nav', action: 'latest' \}\)/);
+  assert.match(html, /postMessage\(\{ type: 'nav', action: 'refresh' \}\)/);
 });
