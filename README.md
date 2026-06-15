@@ -1,36 +1,39 @@
 # Kafka Lag Monitor
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A VS Code extension for monitoring Apache Kafka consumer lag, browsing topic
-metadata, and (in later phases) browsing messages and producing test
-messages — all from the Explorer sidebar.
+metadata, browsing messages, and producing test messages — all from the
+Explorer sidebar.
 
-## Status
+## Features
 
-**Phase 1 (this version):** an Explorer view showing, per configured
-connection, the list of topics (with partition counts) and consumer groups
-(with total lag and per-partition breakdown). Connections are managed with
-the **Kafka: Add Connection** command (the `+` icon in the Explorer view
-title bar) and the **Kafka: Edit Connection**, **Kafka: Remove Connection**,
-and **Kafka: Reconnect** commands (right-click a connection), backed by VS
-Code settings and SecretStorage. Clicking a topic opens a Topic Metadata
-webview showing its partitions (leader, replicas, ISR) and configuration.
-Clicking a consumer group opens a Lag Dashboard webview showing total lag,
-overall status, and a per-topic/per-partition progress-bar breakdown, with a
-manual refresh button and an auto-refresh toggle (interval configured via
-`kafkaLagMonitor.pollIntervalSeconds`). Right-clicking a topic and choosing
-**Kafka: Browse Messages** opens a Message Browser webview showing a table of
-the topic's most recent messages (Offset, Timestamp, Key, Value, Headers) for
-a chosen partition, with Earliest/Prev/Next/Latest/Refresh navigation and a
-partition selector. Right-clicking a topic and choosing **Kafka: Produce
-Message** opens a Produce webview with Partition, Key, Value, and Headers
-fields and a Send button; on success the result banner shows the partition
-and offset of the produced message, and on failure it shows the kafkajs error
-message verbatim.
-
-SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are supported,
-including mutual TLS (mTLS) with a client certificate, private key, and an
-optional custom CA certificate (configured as file paths; an encrypted
-private key's passphrase is stored in SecretStorage).
+- **Explorer view** showing, per configured connection, the list of topics
+  (with partition counts) and consumer groups (with total lag and
+  per-partition breakdown).
+- Connections are managed with the **Kafka: Add Connection** command (the `+`
+  icon in the Explorer view title bar) and the **Kafka: Edit Connection**,
+  **Kafka: Remove Connection**, and **Kafka: Reconnect** commands
+  (right-click a connection), backed by VS Code settings and SecretStorage.
+- Clicking a topic opens a **Topic Metadata** webview showing its partitions
+  (leader, replicas, ISR) and configuration.
+- Clicking a consumer group opens a **Lag Dashboard** webview showing total
+  lag, overall status, and a per-topic/per-partition progress-bar breakdown,
+  with a manual refresh button and an auto-refresh toggle (interval
+  configured via `kafkaLagMonitor.pollIntervalSeconds`).
+- Right-clicking a topic and choosing **Kafka: Browse Messages** opens a
+  **Message Browser** webview showing a table of the topic's most recent
+  messages (Offset, Timestamp, Key, Value, Headers) for a chosen partition,
+  with Earliest/Prev/Next/Latest/Refresh navigation and a partition selector.
+- Right-clicking a topic and choosing **Kafka: Produce Message** opens a
+  **Produce** webview with Partition, Key, Value, and Headers fields and a
+  Send button; on success the result banner shows the partition and offset of
+  the produced message, and on failure it shows the kafkajs error message
+  verbatim.
+- SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are
+  supported, including mutual TLS (mTLS) with a client certificate, private
+  key, and an optional custom CA certificate (configured as file paths; an
+  encrypted private key's passphrase is stored in SecretStorage).
 
 ## Configuration
 
@@ -83,6 +86,8 @@ commands for those):
 
 ## Development
 
+Not yet published to the VS Code Marketplace — run from source:
+
 ```bash
 npm install
 npm run compile   # or: npm run watch
@@ -93,13 +98,14 @@ Press `F5` in VS Code to launch the Extension Development Host.
 
 ## Manual integration test
 
-With the local `kafka-orchestrator` cluster running (`localhost:9091`):
+With a local Kafka cluster running on `localhost:9091` (matching the
+`local-cluster` connection in `.vscode/settings.json`) and the Kafka
+distribution's `bin/` scripts on your `PATH`:
 
 ```bash
-cd ../java-kafka-cli
-./bin/kafka-topics.sh --bootstrap-server localhost:9091 --create --topic orders.events --partitions 3 --replication-factor 1
-for i in 1 2 3 4 5; do echo "order-$i"; done | ./bin/kafka-console-producer.sh --bootstrap-server localhost:9091 --topic orders.events
-./bin/kafka-console-consumer.sh --bootstrap-server localhost:9091 --topic orders.events --group order-service --max-messages 2
+kafka-topics.sh --bootstrap-server localhost:9091 --create --topic orders.events --partitions 3 --replication-factor 1
+for i in 1 2 3 4 5; do echo "order-$i"; done | kafka-console-producer.sh --bootstrap-server localhost:9091 --topic orders.events
+kafka-console-consumer.sh --bootstrap-server localhost:9091 --topic orders.events --group order-service --max-messages 2
 ```
 
 Then `F5` the extension and expand `local-cluster` in the Explorer sidebar —
