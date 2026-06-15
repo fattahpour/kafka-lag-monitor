@@ -1,5 +1,6 @@
 import { MessagePage, MessageWindow } from '../kafka/consumerService';
 
+// Used by renderMessageBrowserHtml (Task 6) to truncate long values in the table view.
 export const VALUE_TRUNCATE_LENGTH = 300;
 
 export interface MessageHeaderView {
