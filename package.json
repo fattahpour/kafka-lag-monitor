@@ -82,6 +82,10 @@
       {
         "command": "kafkaLagMonitor.reconnect",
         "title": "Kafka: Reconnect"
+      },
+      {
+        "command": "kafkaLagMonitor.browseMessages",
+        "title": "Kafka: Browse Messages"
       }
     ],
     "menus": {
@@ -109,6 +113,10 @@
         {
           "command": "kafkaLagMonitor.reconnect",
           "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaConnection"
+        },
+        {
+          "command": "kafkaLagMonitor.browseMessages",
+          "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaTopic"
         }
       ]
     }

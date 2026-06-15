@@ -52,6 +52,7 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
         const view = buildTopicNode(element.topic.name, element.topic.partitionCount);
         const item = new vscode.TreeItem(view.label, vscode.TreeItemCollapsibleState.None);
         item.description = view.description;
+        item.contextValue = 'kafkaTopic';
         item.command = {
           command: 'kafkaLagMonitor.showTopicMetadata',
           title: 'Show Topic Metadata',
