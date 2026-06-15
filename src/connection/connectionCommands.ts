@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ConnectionManager } from './connectionManager';
 import { saveConnectionProfiles } from './connectionStore';
 import { parseBrokerList, validateProfileName } from './connectionWizard';
+import { CredentialChanges, planCredentialChanges, WizardResult } from './credentialReconciliation';
 import { getConnectionProfiles } from './profileStore';
 import { validateProfile } from './profileValidation';
 import { deleteCredentials, setCredential } from './secretStore';
@@ -17,13 +18,6 @@ const AUTH_TYPES: Array<{ label: string; mechanism: SaslMechanism | null }> = [
 ];
 
 const SSL_CHOICES = ['No', 'Yes', 'Yes (with client certificate)'];
-
-interface WizardResult {
-  profile: ConnectionProfile;
-  username?: string;
-  password?: string;
-  tlsPassphrase?: string;
-}
 
 async function runConnectionWizard(
   existingNames: string[],
@@ -140,6 +134,19 @@ async function runConnectionWizard(
   return { profile, username, password, tlsPassphrase };
 }
 
+async function applyCredentialChanges(
+  secrets: vscode.SecretStorage,
+  profileName: string,
+  changes: CredentialChanges,
+): Promise<void> {
+  for (const [field, value] of Object.entries(changes.set)) {
+    await setCredential(secrets, profileName, field, value);
+  }
+  if (changes.delete.length > 0) {
+    await deleteCredentials(secrets, profileName, changes.delete);
+  }
+}
+
 export function registerConnectionCommands(
   context: vscode.ExtensionContext,
   connectionManager: ConnectionManager,
@@ -159,13 +166,7 @@ export function registerConnectionCommands(
 
       try {
         await saveConnectionProfiles([...existing, result.profile]);
-        if (result.profile.sasl) {
-          if (result.username) await setCredential(context.secrets, result.profile.name, 'username', result.username);
-          if (result.password) await setCredential(context.secrets, result.profile.name, 'password', result.password);
-        }
-        if (result.tlsPassphrase) {
-          await setCredential(context.secrets, result.profile.name, 'tlsKeyPassphrase', result.tlsPassphrase);
-        }
+        await applyCredentialChanges(context.secrets, result.profile.name, planCredentialChanges(result));
       } catch (err) {
         vscode.window.showErrorMessage((err as Error).message);
         return;
@@ -189,13 +190,7 @@ export function registerConnectionCommands(
 
       try {
         await saveConnectionProfiles(existing.map((p) => (p.name === current.name ? result.profile : p)));
-        if (result.profile.sasl) {
-          if (result.username) await setCredential(context.secrets, result.profile.name, 'username', result.username);
-          if (result.password) await setCredential(context.secrets, result.profile.name, 'password', result.password);
-        }
-        if (result.tlsPassphrase) {
-          await setCredential(context.secrets, result.profile.name, 'tlsKeyPassphrase', result.tlsPassphrase);
-        }
+        await applyCredentialChanges(context.secrets, result.profile.name, planCredentialChanges(result));
       } catch (err) {
         vscode.window.showErrorMessage((err as Error).message);
         return;
