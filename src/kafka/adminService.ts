@@ -28,6 +28,12 @@ export interface ConsumerGroupSummary {
   groupId: string;
 }
 
+export interface PartitionOffsets {
+  partition: number;
+  low: number;
+  high: number;
+}
+
 const TOPIC_RESOURCE_TYPE = 2; // kafkajs ResourceTypes.TOPIC
 
 export class AdminService {
@@ -86,5 +92,10 @@ export class AdminService {
       result.push(aggregateTopicLag(topic, partitionLags));
     }
     return result;
+  }
+
+  async getTopicOffsets(topic: string): Promise<PartitionOffsets[]> {
+    const offsets = await this.admin.fetchTopicOffsets(topic);
+    return offsets.map((o) => ({ partition: o.partition, low: Number(o.low), high: Number(o.high) }));
   }
 }

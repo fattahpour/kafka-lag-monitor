@@ -183,3 +183,22 @@ test('getGroupLag returns an empty array for a group with no committed offsets',
 
   assert.deepEqual(result, []);
 });
+
+test('getTopicOffsets maps partition/low/high to numbers', async () => {
+  const admin = createFakeAdminClient({
+    fetchTopicOffsets: async (topic) => {
+      assert.equal(topic, 'orders.events');
+      return [
+        { partition: 0, offset: '600', high: '600', low: '0' },
+        { partition: 1, offset: '220', high: '220', low: '20' },
+      ];
+    },
+  });
+
+  const result = await new AdminService(admin).getTopicOffsets('orders.events');
+
+  assert.deepEqual(result, [
+    { partition: 0, low: 0, high: 600 },
+    { partition: 1, low: 20, high: 220 },
+  ]);
+});
