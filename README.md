@@ -6,6 +6,19 @@ A VS Code extension for monitoring Apache Kafka consumer lag, browsing topic
 metadata, browsing messages, and producing test messages — all from the
 Explorer sidebar.
 
+## Install
+
+This extension is not published to the VS Code Marketplace yet. Install the
+packaged VSIX from this repository:
+
+1. Open VS Code.
+2. Run **Extensions: Install from VSIX...** from the Command Palette.
+3. Select `kafka-lag-monitor-0.0.1.vsix`.
+4. Reload VS Code if prompted.
+
+For local development, open this repository in VS Code and press `F5` to run
+the extension in an Extension Development Host.
+
 ## Features
 
 - **Explorer view** showing, per configured connection, the list of topics
@@ -34,6 +47,29 @@ Explorer sidebar.
   supported, including mutual TLS (mTLS) with a client certificate, private
   key, and an optional custom CA certificate (configured as file paths; an
   encrypted private key's passphrase is stored in SecretStorage).
+
+## How to use
+
+1. Open the **Explorer** sidebar in VS Code.
+2. Find the **Kafka Lag Monitor** view.
+3. Click the `+` button in the **Kafka Lag Monitor** view title bar, or run
+   **Kafka: Add Connection** from the Command Palette.
+4. Enter a connection name and Kafka broker list, such as
+   `localhost:9092` or `broker1:9093,broker2:9093`.
+5. Choose whether the cluster uses SSL, mTLS, or SASL authentication. Secrets
+   such as SASL passwords and mTLS key passphrases are stored in VS Code
+   SecretStorage.
+6. Expand the connection in **Kafka Lag Monitor**. The extension connects to
+   the cluster and shows **Topics** and **Consumer Groups**.
+7. Expand **Topics** to inspect available topics. Click a topic to open topic
+   metadata.
+8. Right-click a topic and choose **Kafka: Browse Messages** to inspect recent
+   messages, or **Kafka: Produce Message** to send a test message.
+9. Expand **Consumer Groups** to see lag totals. Click a group to open the
+   Lag Dashboard.
+10. Use the refresh icon in the **Kafka Lag Monitor** view title bar to reload
+    the tree, or right-click a connection and choose **Kafka: Reconnect** after
+    changing connection settings.
 
 ## Configuration
 
@@ -95,6 +131,13 @@ npm test          # unit tests (node:test)
 ```
 
 Press `F5` in VS Code to launch the Extension Development Host.
+
+To build a VSIX package:
+
+```bash
+npm run compile
+npx @vscode/vsce package
+```
 
 ## Manual integration test
 
