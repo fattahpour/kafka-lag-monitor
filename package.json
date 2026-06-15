@@ -84,6 +84,10 @@
         "title": "Kafka: Reconnect"
       },
       {
+        "command": "kafkaLagMonitor.produce",
+        "title": "Kafka: Produce Message"
+      },
+      {
         "command": "kafkaLagMonitor.browseMessages",
         "title": "Kafka: Browse Messages"
       }
@@ -113,6 +117,10 @@
         {
           "command": "kafkaLagMonitor.reconnect",
           "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaConnection"
+        },
+        {
+          "command": "kafkaLagMonitor.produce",
+          "when": "view == kafkaLagMonitor.explorer && viewItem == kafkaTopic"
         },
         {
           "command": "kafkaLagMonitor.browseMessages",
