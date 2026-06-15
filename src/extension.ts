@@ -12,6 +12,7 @@ import { createKafkaLogCreator } from './logging/kafkaLogCreator';
 import { KafkaExplorerProvider } from './treeView/kafkaExplorerProvider';
 import { LagDashboardPanel } from './webviews/lagDashboardPanelController';
 import { MessageBrowserPanel } from './webviews/messageBrowserPanelController';
+import { ProducePanel } from './webviews/producePanelController';
 import { TopicMetadataPanel } from './webviews/topicMetadataPanelController';
 
 function buildSasl(mechanism: SaslMechanism, username: string, password: string): SASLOptions {
@@ -96,6 +97,15 @@ export function activate(context: vscode.ExtensionContext): void {
       'kafkaLagMonitor.browseMessages',
       async (profile: ConnectionProfile, topicName: string) => {
         await MessageBrowserPanel.show(connectionManager, createConsumerClient, profile, topicName);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'kafkaLagMonitor.produce',
+      async (profile: ConnectionProfile, topicName: string) => {
+        await ProducePanel.show(connectionManager, profile, topicName);
       },
     ),
   );
