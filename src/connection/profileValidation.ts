@@ -41,7 +41,29 @@ export function validateProfile(raw: unknown): { profile: ConnectionProfile | nu
     }
   }
 
-  const ssl = obj.ssl === true;
+  let ssl: ConnectionProfile['ssl'] = false;
+  if (obj.ssl === true || obj.ssl === false || obj.ssl === undefined || obj.ssl === null) {
+    ssl = obj.ssl === true;
+  } else if (typeof obj.ssl === 'object') {
+    const sslObj = obj.ssl as Record<string, unknown>;
+    const cert = sslObj.cert;
+    const key = sslObj.key;
+    const ca = sslObj.ca;
+    if (typeof cert !== 'string' || cert.trim() === '') {
+      errors.push('"ssl.cert" must be a non-empty string (path to a PEM file)');
+    }
+    if (typeof key !== 'string' || key.trim() === '') {
+      errors.push('"ssl.key" must be a non-empty string (path to a PEM file)');
+    }
+    if (ca !== undefined && (typeof ca !== 'string' || ca.trim() === '')) {
+      errors.push('"ssl.ca" must be a non-empty string (path to a PEM file) when present');
+    }
+    if (typeof cert === 'string' && cert.trim() !== '' && typeof key === 'string' && key.trim() !== '') {
+      ssl = { cert, key, ...(typeof ca === 'string' && ca.trim() !== '' ? { ca } : {}) };
+    }
+  } else {
+    errors.push('"ssl" must be a boolean or an object with "cert" and "key" (and optional "ca")');
+  }
   const clientId =
     typeof obj.clientId === 'string' && obj.clientId.trim() !== '' ? obj.clientId : 'kafka-lag-monitor';
 

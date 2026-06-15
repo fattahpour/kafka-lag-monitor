@@ -4,11 +4,17 @@ export interface SaslConfig {
   mechanism: SaslMechanism;
 }
 
+export interface MtlsConfig {
+  ca?: string;
+  cert: string;
+  key: string;
+}
+
 export interface ConnectionProfile {
   name: string;
   brokers: string[];
   sasl: SaslConfig | null;
-  ssl: boolean;
+  ssl: boolean | MtlsConfig;
   clientId: string;
 }
 
