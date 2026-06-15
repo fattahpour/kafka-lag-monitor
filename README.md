@@ -27,15 +27,19 @@ fields and a Send button; on success the result banner shows the partition
 and offset of the produced message, and on failure it shows the kafkajs error
 message verbatim.
 
-SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are supported.
-mTLS / client-certificate SSL is not yet supported.
+SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are supported,
+including mutual TLS (mTLS) with a client certificate, private key, and an
+optional custom CA certificate (configured as file paths; an encrypted
+private key's passphrase is stored in SecretStorage).
 
 ## Configuration
 
 The easiest way to add a connection is the **Kafka: Add Connection** command
 (the `+` icon in the Explorer view title bar), which prompts for a name,
-brokers, SSL, authentication, and (for SASL) a username/password. SASL
-credentials are stored in VS Code's SecretStorage, not in settings.
+brokers, SSL (plain, or "with client certificate" for mTLS — CA/cert/key file
+paths plus an optional private key passphrase), authentication, and (for
+SASL) a username/password. SASL credentials and the mTLS key passphrase are
+stored in VS Code's SecretStorage, not in settings.
 
 Connection profiles can also be viewed or hand-edited in your VS Code
 settings (SASL credentials are not stored here — use the Add/Edit Connection
@@ -55,6 +59,13 @@ commands for those):
     "brokers": ["broker1:9093"],
     "sasl": { "mechanism": "scram-sha-512" },
     "ssl": true,
+    "clientId": "kafka-lag-monitor"
+  },
+  {
+    "name": "mtls-cluster",
+    "brokers": ["broker1:9093"],
+    "sasl": null,
+    "ssl": { "ca": "/etc/kafka/ca.pem", "cert": "/etc/kafka/client-cert.pem", "key": "/etc/kafka/client-key.pem" },
     "clientId": "kafka-lag-monitor"
   }
 ],
