@@ -9,9 +9,10 @@ messages — all from the Explorer sidebar.
 **Phase 1 (this version):** an Explorer view showing, per configured
 connection, the list of topics (with partition counts) and consumer groups
 (with total lag and per-partition breakdown). Connections are managed with
-the **Kafka: Add/Edit/Remove Connection** and **Kafka: Reconnect** commands
-(available from the Explorer view title bar and by right-clicking a
-connection), backed by VS Code settings and SecretStorage. Clicking a topic
+the **Kafka: Add Connection** command (the `+` icon in the Explorer view
+title bar) and the **Kafka: Edit Connection**, **Kafka: Remove Connection**,
+and **Kafka: Reconnect** commands (right-click a connection), backed by VS
+Code settings and SecretStorage. Clicking a topic
 opens a Topic Metadata webview showing its partitions (leader, replicas, ISR)
 and configuration. The Lag Dashboard, Message Browser, and Produce webviews
 are planned in follow-up phases (see
