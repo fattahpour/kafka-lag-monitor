@@ -17,8 +17,11 @@ webview showing its partitions (leader, replicas, ISR) and configuration.
 Clicking a consumer group opens a Lag Dashboard webview showing total lag,
 overall status, and a per-topic/per-partition progress-bar breakdown, with a
 manual refresh button and an auto-refresh toggle (interval configured via
-`kafkaLagMonitor.pollIntervalSeconds`). Message Browser and Produce webviews
-are planned in follow-up phases (see
+`kafkaLagMonitor.pollIntervalSeconds`). Right-clicking a topic and choosing
+**Kafka: Browse Messages** opens a Message Browser webview showing a table of
+the topic's most recent messages (Offset, Timestamp, Key, Value, Headers) for
+a chosen partition, with Earliest/Prev/Next/Latest/Refresh navigation and a
+partition selector. A Produce webview is planned in a follow-up phase (see
 `docs/superpowers/specs/2026-06-13-kafka-lag-monitor-design.md`).
 
 SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are supported.
@@ -89,4 +92,7 @@ Then `F5` the extension and expand `local-cluster` in the Explorer sidebar —
 `orders.events` should show 3 partitions, and `order-service` should show a
 total lag of 3. Clicking `order-service` opens the Lag Dashboard, which should
 show a Total Lag of 3 with one `orders.events` section and per-partition
-progress bars.
+progress bars. Right-click `orders.events` and choose **Kafka: Browse
+Messages** — the panel should open for partition 0 showing the most recent
+messages with Offset/Timestamp/Key/Value/Headers columns; use the partition
+selector and the Earliest/Prev/Next/Latest/Refresh buttons to navigate.
