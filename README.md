@@ -21,8 +21,11 @@ manual refresh button and an auto-refresh toggle (interval configured via
 **Kafka: Browse Messages** opens a Message Browser webview showing a table of
 the topic's most recent messages (Offset, Timestamp, Key, Value, Headers) for
 a chosen partition, with Earliest/Prev/Next/Latest/Refresh navigation and a
-partition selector. A Produce webview is planned in a follow-up phase (see
-`docs/superpowers/specs/2026-06-13-kafka-lag-monitor-design.md`).
+partition selector. Right-clicking a topic and choosing **Kafka: Produce
+Message** opens a Produce webview with Partition, Key, Value, and Headers
+fields and a Send button; on success the result banner shows the partition
+and offset of the produced message, and on failure it shows the kafkajs error
+message verbatim.
 
 SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are supported.
 mTLS / client-certificate SSL is not yet supported.
@@ -96,3 +99,10 @@ progress bars. Right-click `orders.events` and choose **Kafka: Browse
 Messages** — the panel should open for partition 0 showing the most recent
 messages with Offset/Timestamp/Key/Value/Headers columns; use the partition
 selector and the Earliest/Prev/Next/Latest/Refresh buttons to navigate.
+Right-click `orders.events` and choose **Kafka: Produce Message** — fill in a
+key (e.g. `order-6`), a value (e.g. `{"id":6,"status":"created"}`), and one
+header (e.g. `trace-id` / `abc-123`), then click **Send**. The result banner
+should show `Sent to partition <p>, offset <o>`. Switch to (or re-open via
+**Kafka: Browse Messages**) the Message Browser panel and click **Latest** to
+confirm the new message appears at that offset with the key, value, and
+header you entered.
