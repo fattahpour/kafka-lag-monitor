@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Kafka Lag Monitor icon</title>
+  <desc id="desc">Kafka stream nodes flowing into a lag gauge.</desc>
+  <defs>
+    <linearGradient id="gauge" x1="75" y1="94" x2="198" y2="202" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f4fbff"/>
+      <stop offset="1" stop-color="#cde9f0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#06131f" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect width="256" height="256" rx="54" fill="#17324d"/>
+
+  <g fill="none" stroke="#9be7db" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" opacity="0.94">
+    <path d="M58 72h42"/>
+    <path d="M58 126h31"/>
+    <path d="M58 180h42"/>
+    <path d="M100 72c28 0 31 31 53 39"/>
+    <path d="M89 126h47"/>
+    <path d="M100 180c25 0 32-22 50-33"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <circle cx="58" cy="72" r="17" fill="#dffcf7"/>
+    <circle cx="58" cy="126" r="17" fill="#dffcf7"/>
+    <circle cx="58" cy="180" r="17" fill="#dffcf7"/>
+    <circle cx="101" cy="72" r="12" fill="#38cdbd"/>
+    <circle cx="101" cy="180" r="12" fill="#38cdbd"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path
+      d="M76 173a73 73 0 1 1 126 0"
+      fill="none"
+      stroke="url(#gauge)"
+      stroke-width="24"
+      stroke-linecap="round"
+    />
+    <path
+      d="M76 173a73 73 0 0 1 126 0"
+      fill="none"
+      stroke="#ffca4b"
+      stroke-width="12"
+      stroke-linecap="round"
+      stroke-dasharray="74 164"
+      stroke-dashoffset="-96"
+    />
+    <path d="M139 169l48-45" stroke="#ff6b4a" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="139" cy="169" r="19" fill="#f4fbff"/>
+    <circle cx="139" cy="169" r="8" fill="#17324d"/>
+  </g>
+
+  <path d="M93 205h92" stroke="#dffcf7" stroke-width="12" stroke-linecap="round" opacity="0.92"/>
+</svg>

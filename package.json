@@ -19,6 +19,7 @@
   "categories": ["Other"],
   "activationEvents": [],
   "main": "./out/extension.js",
+  "icon": "assets/icon.png",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
