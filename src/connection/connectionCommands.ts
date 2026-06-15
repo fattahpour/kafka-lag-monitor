@@ -5,7 +5,7 @@ import { parseBrokerList, validateProfileName } from './connectionWizard';
 import { getConnectionProfiles } from './profileStore';
 import { validateProfile } from './profileValidation';
 import { deleteCredentials, setCredential } from './secretStore';
-import { ConnectionProfile, SaslMechanism } from './types';
+import { ConnectionProfile, MtlsConfig, SaslMechanism } from './types';
 import { KafkaExplorerProvider } from '../treeView/kafkaExplorerProvider';
 import { STATUS_ICONS } from '../treeView/treeItems';
 
@@ -16,10 +16,13 @@ const AUTH_TYPES: Array<{ label: string; mechanism: SaslMechanism | null }> = [
   { label: 'SCRAM-SHA-512', mechanism: 'scram-sha-512' },
 ];
 
+const SSL_CHOICES = ['No', 'Yes', 'Yes (with client certificate)'];
+
 interface WizardResult {
   profile: ConnectionProfile;
   username?: string;
   password?: string;
+  tlsPassphrase?: string;
 }
 
 async function runConnectionWizard(
@@ -46,11 +49,55 @@ async function runConnectionWizard(
   if (brokersInput === undefined) return undefined;
   const { brokers } = parseBrokerList(brokersInput);
 
-  const sslChoice = await vscode.window.showQuickPick(['No', 'Yes'], {
+  const initialSsl = initial?.ssl;
+  const sslChoice = await vscode.window.showQuickPick(SSL_CHOICES, {
     title: 'Use SSL?',
-    placeHolder: initial?.ssl ? 'Yes' : 'No',
+    placeHolder:
+      typeof initialSsl === 'object' ? SSL_CHOICES[2] : initialSsl ? SSL_CHOICES[1] : SSL_CHOICES[0],
   });
   if (sslChoice === undefined) return undefined;
+
+  let mtls: MtlsConfig | undefined;
+  let tlsPassphrase: string | undefined;
+
+  if (sslChoice === SSL_CHOICES[2]) {
+    const initialMtls = typeof initialSsl === 'object' ? initialSsl : undefined;
+
+    const ca = await vscode.window.showInputBox({
+      title: 'CA certificate path (optional, leave blank for default trust store)',
+      value: initialMtls?.ca ?? '',
+    });
+    if (ca === undefined) return undefined;
+
+    const cert = await vscode.window.showInputBox({
+      title: 'Client certificate path (PEM)',
+      value: initialMtls?.cert ?? '',
+      validateInput: (value) => (value.trim() === '' ? '"Client certificate path" must not be empty' : null),
+    });
+    if (cert === undefined) return undefined;
+
+    const key = await vscode.window.showInputBox({
+      title: 'Client private key path (PEM)',
+      value: initialMtls?.key ?? '',
+      validateInput: (value) => (value.trim() === '' ? '"Client private key path" must not be empty' : null),
+    });
+    if (key === undefined) return undefined;
+
+    mtls = { cert, key, ...(ca.trim() !== '' ? { ca } : {}) };
+
+    const hasPassphrase = await vscode.window.showQuickPick(['No', 'Yes'], {
+      title: 'Does the private key have a passphrase?',
+    });
+    if (hasPassphrase === undefined) return undefined;
+
+    if (hasPassphrase === 'Yes') {
+      tlsPassphrase = await vscode.window.showInputBox({
+        title: 'Private key passphrase (leave blank to keep existing)',
+        password: true,
+      });
+      if (tlsPassphrase === undefined) return undefined;
+    }
+  }
 
   const authChoice = await vscode.window.showQuickPick(
     AUTH_TYPES.map((a) => a.label),
@@ -82,7 +129,7 @@ async function runConnectionWizard(
     name,
     brokers,
     sasl: mechanism ? { mechanism } : null,
-    ssl: sslChoice === 'Yes',
+    ssl: mtls ?? sslChoice === SSL_CHOICES[1],
     clientId,
   });
   if (!profile) {
@@ -90,7 +137,7 @@ async function runConnectionWizard(
     return undefined;
   }
 
-  return { profile, username, password };
+  return { profile, username, password, tlsPassphrase };
 }
 
 export function registerConnectionCommands(
@@ -115,6 +162,9 @@ export function registerConnectionCommands(
         if (result.profile.sasl) {
           if (result.username) await setCredential(context.secrets, result.profile.name, 'username', result.username);
           if (result.password) await setCredential(context.secrets, result.profile.name, 'password', result.password);
+        }
+        if (result.tlsPassphrase) {
+          await setCredential(context.secrets, result.profile.name, 'tlsKeyPassphrase', result.tlsPassphrase);
         }
       } catch (err) {
         vscode.window.showErrorMessage((err as Error).message);
@@ -143,6 +193,9 @@ export function registerConnectionCommands(
           if (result.username) await setCredential(context.secrets, result.profile.name, 'username', result.username);
           if (result.password) await setCredential(context.secrets, result.profile.name, 'password', result.password);
         }
+        if (result.tlsPassphrase) {
+          await setCredential(context.secrets, result.profile.name, 'tlsKeyPassphrase', result.tlsPassphrase);
+        }
       } catch (err) {
         vscode.window.showErrorMessage((err as Error).message);
         return;
@@ -168,7 +221,7 @@ export function registerConnectionCommands(
 
       try {
         await connectionManager.disconnect(target);
-        await deleteCredentials(context.secrets, target, ['username', 'password']);
+        await deleteCredentials(context.secrets, target, ['username', 'password', 'tlsKeyPassphrase']);
         await saveConnectionProfiles(existing.filter((p) => p.name !== target));
       } catch (err) {
         vscode.window.showErrorMessage((err as Error).message);
