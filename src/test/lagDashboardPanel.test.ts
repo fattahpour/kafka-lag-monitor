@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { toDashboardData } from '../webviews/lagDashboardPanel';
+import { renderLagDashboardHtml, toDashboardData } from '../webviews/lagDashboardPanel';
 import { TopicLag } from '../kafka/lag';
 import { Thresholds } from '../connection/profileStore';
 
@@ -122,4 +122,43 @@ test('toDashboardData handles an empty topic list', () => {
   assert.equal(data.severity, 'none');
   assert.equal(data.overThresholdCount, 0);
   assert.deepEqual(data.topics, []);
+});
+
+test('renderLagDashboardHtml includes the control element ids and the serialized initial data', () => {
+  const data = toDashboardData('order-service', [], thresholds);
+  const html = renderLagDashboardHtml('order-service', data, 10);
+
+  assert.match(html, /id="groupTitle"/);
+  assert.match(html, /id="refresh"/);
+  assert.match(html, /id="autopoll"/);
+  assert.match(html, /id="banner"/);
+  assert.match(html, /id="totalLag"/);
+  assert.match(html, /id="status"/);
+  assert.match(html, /id="overThreshold"/);
+  assert.match(html, /id="topics"/);
+  assert.match(html, /<script>[\s\S]*const initialData = \{[\s\S]*"groupId":"order-service"[\s\S]*\}[\s\S]*<\/script>/);
+});
+
+test('renderLagDashboardHtml includes the poll interval in the auto-poll label', () => {
+  const data = toDashboardData('order-service', [], thresholds);
+  const html = renderLagDashboardHtml('order-service', data, 15);
+
+  assert.match(html, /Auto-refresh every 15s/);
+});
+
+test('renderLagDashboardHtml wires the refresh button and autopoll checkbox to postMessage', () => {
+  const data = toDashboardData('order-service', [], thresholds);
+  const html = renderLagDashboardHtml('order-service', data, 10);
+
+  assert.match(html, /postMessage\(\{\s*type:\s*'refresh'\s*\}\)/);
+  assert.match(html, /postMessage\(\{\s*type:\s*'setAutoPoll'/);
+});
+
+test('renderLagDashboardHtml handles update and pollError messages with a reconnect hint', () => {
+  const data = toDashboardData('order-service', [], thresholds);
+  const html = renderLagDashboardHtml('order-service', data, 10);
+
+  assert.match(html, /'update'/);
+  assert.match(html, /'pollError'/);
+  assert.match(html, /Kafka: Reconnect/);
 });
