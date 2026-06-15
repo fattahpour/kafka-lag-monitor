@@ -6,9 +6,11 @@ import { getConnectionProfiles, getLagThresholds } from './connection/profileSto
 import { getCredential } from './connection/secretStore';
 import { ConnectionProfile, SaslMechanism } from './connection/types';
 import { createKafkaAdminClient } from './kafka/kafkaAdminAdapter';
+import { createKafkaConsumerClient } from './kafka/kafkaConsumerAdapter';
 import { createKafkaLogCreator } from './logging/kafkaLogCreator';
 import { KafkaExplorerProvider } from './treeView/kafkaExplorerProvider';
 import { LagDashboardPanel } from './webviews/lagDashboardPanelController';
+import { MessageBrowserPanel } from './webviews/messageBrowserPanelController';
 import { TopicMetadataPanel } from './webviews/topicMetadataPanelController';
 
 function buildSasl(mechanism: SaslMechanism, username: string, password: string): SASLOptions {
@@ -27,7 +29,7 @@ export function activate(context: vscode.ExtensionContext): void {
   output.appendLine('Kafka Lag Monitor activated');
   context.subscriptions.push(output);
 
-  const connectionManager = new ConnectionManager(async (profile) => {
+  async function buildKafka(profile: ConnectionProfile): Promise<Kafka> {
     let sasl: SASLOptions | undefined;
     if (profile.sasl) {
       const username = await getCredential(context.secrets, profile.name, 'username');
@@ -39,15 +41,20 @@ export function activate(context: vscode.ExtensionContext): void {
       }
       sasl = buildSasl(profile.sasl.mechanism, username, password);
     }
-    const kafka = new Kafka({
+    return new Kafka({
       clientId: profile.clientId,
       brokers: profile.brokers,
       ssl: profile.ssl,
       sasl,
       logCreator: createKafkaLogCreator((line) => output.appendLine(line)),
     });
-    return createKafkaAdminClient(kafka.admin());
-  });
+  }
+
+  const connectionManager = new ConnectionManager(async (profile) =>
+    createKafkaAdminClient((await buildKafka(profile)).admin()),
+  );
+
+  const createConsumerClient = async (profile: ConnectionProfile) => createKafkaConsumerClient(await buildKafka(profile));
 
   const onConfigError = (message: string) => output.appendLine(`[CONFIG] ${message}`);
   const profiles = getConnectionProfiles(onConfigError);
@@ -78,6 +85,15 @@ export function activate(context: vscode.ExtensionContext): void {
           .getConfiguration('kafkaLagMonitor')
           .get('pollIntervalSeconds', 10);
         await LagDashboardPanel.show(connectionManager, profile, groupId, thresholds, pollIntervalSeconds);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'kafkaLagMonitor.browseMessages',
+      async (profile: ConnectionProfile, topicName: string) => {
+        await MessageBrowserPanel.show(connectionManager, createConsumerClient, profile, topicName);
       },
     ),
   );
