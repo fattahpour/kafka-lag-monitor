@@ -10,7 +10,7 @@ export type KafkaTreeNode =
   | { kind: 'connection'; profile: ConnectionProfile }
   | { kind: 'topicsFolder'; profile: ConnectionProfile }
   | { kind: 'groupsFolder'; profile: ConnectionProfile }
-  | { kind: 'topic'; topic: TopicSummary }
+  | { kind: 'topic'; topic: TopicSummary; profile: ConnectionProfile }
   | { kind: 'group'; groupId: string; totalLag: number; topicLags: TopicLag[] }
   | { kind: 'groupTopic'; topicLag: TopicLag }
   | { kind: 'partition'; partitionLag: PartitionLag }
@@ -52,6 +52,11 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
         const view = buildTopicNode(element.topic.name, element.topic.partitionCount);
         const item = new vscode.TreeItem(view.label, vscode.TreeItemCollapsibleState.None);
         item.description = view.description;
+        item.command = {
+          command: 'kafkaLagMonitor.showTopicMetadata',
+          title: 'Show Topic Metadata',
+          arguments: [element.profile, element.topic.name],
+        };
         return item;
       }
       case 'group': {
@@ -109,7 +114,7 @@ export class KafkaExplorerProvider implements vscode.TreeDataProvider<KafkaTreeN
         }
         try {
           const topics = await adminService.listTopics();
-          return topics.map((topic) => ({ kind: 'topic', topic }));
+          return topics.map((topic) => ({ kind: 'topic', topic, profile: element.profile }));
         } catch (err) {
           return [{ kind: 'message', text: (err as Error).message }];
         }

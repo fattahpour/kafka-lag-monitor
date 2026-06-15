@@ -4,10 +4,11 @@ import { registerConnectionCommands } from './connection/connectionCommands';
 import { ConnectionManager } from './connection/connectionManager';
 import { getConnectionProfiles, getLagThresholds } from './connection/profileStore';
 import { getCredential } from './connection/secretStore';
-import { SaslMechanism } from './connection/types';
+import { ConnectionProfile, SaslMechanism } from './connection/types';
 import { createKafkaAdminClient } from './kafka/kafkaAdminAdapter';
 import { createKafkaLogCreator } from './logging/kafkaLogCreator';
 import { KafkaExplorerProvider } from './treeView/kafkaExplorerProvider';
+import { TopicMetadataPanel } from './webviews/topicMetadataPanelController';
 
 function buildSasl(mechanism: SaslMechanism, username: string, password: string): SASLOptions {
   switch (mechanism) {
@@ -58,6 +59,15 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(vscode.commands.registerCommand('kafkaLagMonitor.refresh', () => explorer.refresh()));
 
   registerConnectionCommands(context, connectionManager, explorer, onConfigError);
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'kafkaLagMonitor.showTopicMetadata',
+      async (profile: ConnectionProfile, topicName: string) => {
+        await TopicMetadataPanel.show(connectionManager, profile.name, topicName);
+      },
+    ),
+  );
 }
 
 export function deactivate(): void {}
