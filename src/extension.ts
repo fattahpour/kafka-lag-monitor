@@ -7,6 +7,7 @@ import { getCredential } from './connection/secretStore';
 import { ConnectionProfile, SaslMechanism } from './connection/types';
 import { createKafkaAdminClient } from './kafka/kafkaAdminAdapter';
 import { createKafkaConsumerClient } from './kafka/kafkaConsumerAdapter';
+import { createKafkaProducerClient } from './kafka/kafkaProducerAdapter';
 import { createKafkaLogCreator } from './logging/kafkaLogCreator';
 import { KafkaExplorerProvider } from './treeView/kafkaExplorerProvider';
 import { LagDashboardPanel } from './webviews/lagDashboardPanelController';
@@ -50,8 +51,9 @@ export function activate(context: vscode.ExtensionContext): void {
     });
   }
 
-  const connectionManager = new ConnectionManager(async (profile) =>
-    createKafkaAdminClient((await buildKafka(profile)).admin()),
+  const connectionManager = new ConnectionManager(
+    async (profile) => createKafkaAdminClient((await buildKafka(profile)).admin()),
+    async (profile) => createKafkaProducerClient((await buildKafka(profile)).producer()),
   );
 
   const createConsumerClient = async (profile: ConnectionProfile) => createKafkaConsumerClient(await buildKafka(profile));

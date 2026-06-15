@@ -1,6 +1,8 @@
 import { ConnectionProfile, ConnectionStatus } from './types';
 import { KafkaAdminClient } from '../kafka/adminClient';
 import { AdminService } from '../kafka/adminService';
+import { KafkaProducerClient } from '../kafka/producerClient';
+import { ProducerService } from '../kafka/producerService';
 
 export interface ConnectionState {
   status: ConnectionStatus;
@@ -8,13 +10,18 @@ export interface ConnectionState {
 }
 
 export type AdminClientFactory = (profile: ConnectionProfile) => Promise<KafkaAdminClient>;
+export type ProducerClientFactory = (profile: ConnectionProfile) => Promise<KafkaProducerClient>;
 
 export class ConnectionManager {
   private readonly clients = new Map<string, KafkaAdminClient>();
+  private readonly producers = new Map<string, KafkaProducerClient>();
   private readonly states = new Map<string, ConnectionState>();
   private readonly generations = new Map<string, number>();
 
-  constructor(private readonly createAdminClient: AdminClientFactory) {}
+  constructor(
+    private readonly createAdminClient: AdminClientFactory,
+    private readonly createProducerClient: ProducerClientFactory,
+  ) {}
 
   getState(profileName: string): ConnectionState {
     return this.states.get(profileName) ?? { status: 'idle' };
@@ -60,6 +67,11 @@ export class ConnectionManager {
       this.clients.delete(profile.name);
       await existing.disconnect().catch(() => undefined);
     }
+    const existingProducer = this.producers.get(profile.name);
+    if (existingProducer) {
+      this.producers.delete(profile.name);
+      await existingProducer.disconnect().catch(() => undefined);
+    }
 
     try {
       const client = await this.createAdminClient(profile);
@@ -83,6 +95,11 @@ export class ConnectionManager {
       await client.disconnect();
       this.clients.delete(profileName);
     }
+    const producer = this.producers.get(profileName);
+    if (producer) {
+      this.producers.delete(profileName);
+      await producer.disconnect().catch(() => undefined);
+    }
     this.states.set(profileName, { status: 'idle' });
   }
 
@@ -91,5 +108,17 @@ export class ConnectionManager {
     const client = this.clients.get(profileName);
     if (state.status !== 'connected' || !client) return undefined;
     return new AdminService(client);
+  }
+
+  async getProducerService(profile: ConnectionProfile): Promise<ProducerService | undefined> {
+    if (this.getState(profile.name).status !== 'connected') return undefined;
+
+    let client = this.producers.get(profile.name);
+    if (!client) {
+      client = await this.createProducerClient(profile);
+      await client.connect();
+      this.producers.set(profile.name, client);
+    }
+    return new ProducerService(client);
   }
 }
