@@ -7,6 +7,7 @@ export class TopicMetadataPanel {
 
   private profileName = '';
   private topicName = '';
+  private generation = 0;
 
   private constructor(
     private readonly panel: vscode.WebviewPanel,
@@ -40,8 +41,10 @@ export class TopicMetadataPanel {
   }
 
   private async render(): Promise<void> {
+    const gen = ++this.generation;
     const adminService = this.connectionManager.getAdminService(this.profileName);
     if (!adminService) {
+      if (gen !== this.generation) return;
       this.panel.webview.html = renderErrorHtml('Not connected — expand the connection in the sidebar first.');
       return;
     }
@@ -50,8 +53,10 @@ export class TopicMetadataPanel {
         adminService.getTopicMetadata(this.topicName),
         adminService.getTopicConfig(this.topicName),
       ]);
+      if (gen !== this.generation) return;
       this.panel.webview.html = renderTopicMetadataHtml(this.topicName, metadata, configEntries);
     } catch (err) {
+      if (gen !== this.generation) return;
       this.panel.webview.html = renderErrorHtml((err as Error).message);
     }
   }
