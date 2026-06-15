@@ -6,19 +6,30 @@ messages — all from the Explorer sidebar.
 
 ## Status
 
-**Phase 1 (this version):** read-only Explorer view showing, per configured
+**Phase 1 (this version):** an Explorer view showing, per configured
 connection, the list of topics (with partition counts) and consumer groups
-(with total lag and per-partition breakdown). Connections are configured
-directly in `settings.json` — a connection-management wizard, the Lag
-Dashboard, Message Browser, and Produce webviews are planned in follow-up
-phases (see `docs/superpowers/specs/2026-06-13-kafka-lag-monitor-design.md`).
+(with total lag and per-partition breakdown). Connections are managed with
+the **Kafka: Add/Edit/Remove Connection** and **Kafka: Reconnect** commands
+(available from the Explorer view title bar and by right-clicking a
+connection), backed by VS Code settings and SecretStorage. Clicking a topic
+opens a Topic Metadata webview showing its partitions (leader, replicas, ISR)
+and configuration. The Lag Dashboard, Message Browser, and Produce webviews
+are planned in follow-up phases (see
+`docs/superpowers/specs/2026-06-13-kafka-lag-monitor-design.md`).
 
-SASL/SSL authentication is not yet wired up; only PLAINTEXT and SSL-without-SASL
-connections are supported.
+SASL (PLAIN, SCRAM-SHA-256, SCRAM-SHA-512) and SSL connections are supported.
+mTLS / client-certificate SSL is not yet supported.
 
 ## Configuration
 
-Add one or more connection profiles to your VS Code settings:
+The easiest way to add a connection is the **Kafka: Add Connection** command
+(the `+` icon in the Explorer view title bar), which prompts for a name,
+brokers, SSL, authentication, and (for SASL) a username/password. SASL
+credentials are stored in VS Code's SecretStorage, not in settings.
+
+Connection profiles can also be viewed or hand-edited in your VS Code
+settings (SASL credentials are not stored here — use the Add/Edit Connection
+commands for those):
 
 ```jsonc
 "kafkaLagMonitor.connections": [
@@ -28,11 +39,26 @@ Add one or more connection profiles to your VS Code settings:
     "sasl": null,
     "ssl": false,
     "clientId": "kafka-lag-monitor"
+  },
+  {
+    "name": "secure-cluster",
+    "brokers": ["broker1:9093"],
+    "sasl": { "mechanism": "scram-sha-512" },
+    "ssl": true,
+    "clientId": "kafka-lag-monitor"
   }
 ],
 "kafkaLagMonitor.lagWarningThreshold": 100,
 "kafkaLagMonitor.lagCriticalThreshold": 1000
 ```
+
+## Commands
+
+- **Kafka: Add Connection** — wizard to create a new connection profile.
+- **Kafka: Edit Connection** — wizard to update an existing connection profile (leave the username/password fields blank to keep the currently stored credentials).
+- **Kafka: Remove Connection** — removes a connection profile and its stored credentials, after confirmation.
+- **Kafka: Reconnect** — disconnects and re-creates a connection's client (useful after editing brokers or credentials).
+- **Kafka Lag Monitor: Refresh** — refreshes the Explorer view.
 
 ## Development
 
