@@ -290,3 +290,40 @@ test('reconnect disposes the cached producer client', async () => {
 
   assert.equal(createCount, 2);
 });
+
+test('a stale getProducerService() producer-create does not get cached after a concurrent reconnect()', async () => {
+  let resolveFirstProducerConnect: () => void = () => {};
+  let firstProducerDisconnected = false;
+  let createCount = 0;
+  const manager = new ConnectionManager(
+    async () => createFakeAdminClient(),
+    async () => {
+      createCount += 1;
+      if (createCount === 1) {
+        return createFakeProducerClient({
+          connect: () =>
+            new Promise<void>((resolve) => {
+              resolveFirstProducerConnect = resolve;
+            }),
+          disconnect: async () => {
+            firstProducerDisconnected = true;
+          },
+        });
+      }
+      return createFakeProducerClient();
+    },
+  );
+
+  await manager.connect(profile);
+
+  const getProducerPromise = manager.getProducerService(profile);
+
+  await manager.reconnect(profile);
+
+  resolveFirstProducerConnect();
+  const result = await getProducerPromise;
+
+  assert.ok(result);
+  assert.ok(firstProducerDisconnected);
+  assert.equal(createCount, 2);
+});

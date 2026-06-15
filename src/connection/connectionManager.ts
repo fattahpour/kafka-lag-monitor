@@ -111,12 +111,17 @@ export class ConnectionManager {
   }
 
   async getProducerService(profile: ConnectionProfile): Promise<ProducerService | undefined> {
+    const gen = this.generations.get(profile.name) ?? 0;
     if (this.getState(profile.name).status !== 'connected') return undefined;
 
     let client = this.producers.get(profile.name);
     if (!client) {
       client = await this.createProducerClient(profile);
       await client.connect();
+      if (!this.isCurrentGeneration(profile.name, gen)) {
+        await client.disconnect().catch(() => undefined);
+        return this.getProducerService(profile);
+      }
       this.producers.set(profile.name, client);
     }
     return new ProducerService(client);
