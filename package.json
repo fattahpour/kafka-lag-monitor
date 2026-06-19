@@ -41,11 +41,6 @@
     "configuration": {
       "title": "Kafka Lag Monitor",
       "properties": {
-        "kafkaLagMonitor.connections": {
-          "type": "array",
-          "default": [],
-          "description": "Kafka cluster connection profiles. Each entry: { name, brokers: [\"host:port\", ...], sasl: null or { mechanism: \"plain\"|\"scram-sha-256\"|\"scram-sha-512\" }, ssl: boolean or { ca?, cert, key } (paths to PEM files, for mTLS), clientId }. Use the 'Kafka: Add Connection' command to create one — SASL credentials and the mTLS key passphrase are stored in SecretStorage, not in settings."
-        },
         "kafkaLagMonitor.lagWarningThreshold": {
           "type": "number",
           "default": 100,

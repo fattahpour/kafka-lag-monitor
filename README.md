@@ -47,7 +47,7 @@ Extension Development Host.
 12. Click a consumer group to open the Lag Dashboard.
 
 Connection passwords and mTLS key passphrases are stored in VS Code
-SecretStorage. They are not written to `settings.json`.
+SecretStorage. They are not written to connection files.
 
 ## Main features
 
@@ -75,37 +75,51 @@ SecretStorage. They are not written to `settings.json`.
 The recommended setup path is **Kafka: Add Connection**. It prompts for brokers,
 SSL/mTLS settings, SASL mechanism, username, and password.
 
-You can also inspect or hand-edit non-secret connection settings in VS Code
-settings:
+Connection profiles are stored in the first workspace folder at:
+
+```text
+.vscode/kafka-lag-monitor.connections.json
+```
+
+If that file does not exist yet, the extension uses a default local profile for
+`localhost:9092`. You can also inspect or hand-edit non-secret connection
+settings in the workspace file:
+
+```json
+{
+  "connections": [
+    {
+      "name": "local-cluster",
+      "brokers": ["localhost:9092"],
+      "sasl": null,
+      "ssl": false,
+      "clientId": "kafka-lag-monitor"
+    },
+    {
+      "name": "secure-cluster",
+      "brokers": ["broker1:9093"],
+      "sasl": { "mechanism": "scram-sha-512" },
+      "ssl": true,
+      "clientId": "kafka-lag-monitor"
+    },
+    {
+      "name": "mtls-cluster",
+      "brokers": ["broker1:9093"],
+      "sasl": null,
+      "ssl": {
+        "ca": "/etc/kafka/ca.pem",
+        "cert": "/etc/kafka/client-cert.pem",
+        "key": "/etc/kafka/client-key.pem"
+      },
+      "clientId": "kafka-lag-monitor"
+    }
+  ]
+}
+```
+
+Lag thresholds and dashboard polling remain VS Code settings:
 
 ```jsonc
-"kafkaLagMonitor.connections": [
-  {
-    "name": "local-cluster",
-    "brokers": ["localhost:9092"],
-    "sasl": null,
-    "ssl": false,
-    "clientId": "kafka-lag-monitor"
-  },
-  {
-    "name": "secure-cluster",
-    "brokers": ["broker1:9093"],
-    "sasl": { "mechanism": "scram-sha-512" },
-    "ssl": true,
-    "clientId": "kafka-lag-monitor"
-  },
-  {
-    "name": "mtls-cluster",
-    "brokers": ["broker1:9093"],
-    "sasl": null,
-    "ssl": {
-      "ca": "/etc/kafka/ca.pem",
-      "cert": "/etc/kafka/client-cert.pem",
-      "key": "/etc/kafka/client-key.pem"
-    },
-    "clientId": "kafka-lag-monitor"
-  }
-],
 "kafkaLagMonitor.lagWarningThreshold": 100,
 "kafkaLagMonitor.lagCriticalThreshold": 1000,
 "kafkaLagMonitor.pollIntervalSeconds": 10

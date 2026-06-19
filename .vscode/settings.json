@@ -1,11 +1,1 @@
-{
-  "kafkaLagMonitor.connections": [
-    {
-      "name": "local-cluster",
-      "brokers": ["localhost:9091", "localhost:9092", "localhost:9095"],
-      "sasl": null,
-      "ssl": false,
-      "clientId": "kafka-lag-monitor"
-    }
-  ]
-}
+{}
