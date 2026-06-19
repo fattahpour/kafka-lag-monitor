@@ -2,7 +2,7 @@
   "name": "kafka-lag-monitor",
   "displayName": "Kafka Lag Monitor",
   "description": "Monitor Kafka consumer lag, browse topics, and inspect cluster metadata from VS Code.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "fattahpour",
   "license": "MIT",
   "repository": {
